@@ -1,0 +1,17 @@
+# MULTIPLY TWO NUMBERS
+beginning:
+    INBOX
+    COPYTO   0
+    INBOX
+    COPYTO   1
+    COPYTO   2
+decrement:
+    BUMPDOWN 0
+    JUMPZ    result
+    COPYFROM 1
+    ADD      2
+    COPYTO   2
+    JUMP     decrement
+result:
+    COPYFROM 2
+    OUTBOX

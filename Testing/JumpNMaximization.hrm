@@ -1,0 +1,13 @@
+beginning:
+    INBOX
+    COPYTO   0
+    INBOX
+    SUB      0
+    JUMPN negative
+    ADD      0
+output:
+    OUTBOX
+    JUMP beginning
+negative:
+    COPYFROM 0
+    JUMP output

@@ -1,0 +1,32 @@
+# MULTIPLY TWO NUMBERS
+
+# ------------------------------------------------------------------
+# copy two inputs into x and y
+# ------------------------------------------------------------------
+beginning:
+    INBOX               # x = input
+    COPYTO   x
+    INBOX               # y = input
+    COPYTO   y
+
+
+# ------------------------------------------------------------------
+# continuously add y to z x number of times
+# ------------------------------------------------------------------
+    COPYTO   z          # z = y
+
+decrement:
+    BUMPDOWN x          # x--
+    JUMPZ    result     # keep doing this until x is equal to zero
+
+    COPYFROM y          # z += y
+    ADD      z
+    COPYTO   z
+    JUMP     decrement  # end of loop
+
+# ------------------------------------------------------------------
+# finished, output z
+# ------------------------------------------------------------------
+result:
+    COPYFROM z
+    OUTBOX

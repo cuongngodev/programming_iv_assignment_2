@@ -1,0 +1,10 @@
+INBOX						# a = intput()
+COPYTO 1			        # store a in memory location 1
+INBOX					    # b = input()
+COPYTO 2			        # store b in memory location 2
+INBOX						# c = input()
+ADD 2					    # d = c + b
+COPYTO 3			        # store d in memory location 3
+COPYFROM 1			        # get a from memory
+SUB 3						# a = a - d
+OUTBOX					    # print d

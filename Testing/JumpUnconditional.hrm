@@ -1,0 +1,6 @@
+JUMP b
+a:
+OUTBOX
+b:
+INBOX
+JUMP a
