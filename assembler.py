@@ -1,5 +1,6 @@
 import re
 import sys
+import os
 
 # ============================================================================
 # Definitions
@@ -16,9 +17,11 @@ MEMORY_ADDRESS = int
 LINE_NUMBER = int
 MNEMONIC = str
 
+DEFAULT_PATH = "./Testing/"
+
 mnemonics: dict[MNEMONIC, OPCODE] = {
-    "INBOX": (1, 1),
-    "OUTBOX": (2, 1),
+    "INBOX": (3, 1),
+    "OUTBOX": (5, 1),
     "COPYTO": (3, 2),
     "COPYTO_PT": (4, 2),
     "COPYFROM": (5, 2),
@@ -54,8 +57,8 @@ def assemble(file_name):
 
     code = open(file_name, "r").readlines()
     process(code)
-
-    executable_file = file_name[:file_name.find(".")] + ".out"
+    file_name = os.path.basename(file_name)
+    executable_file = DEFAULT_PATH + file_name[:file_name.find(".")] + ".out"
     executable_fh = open(executable_file, "w")
     for word in executable:
         print(word, file=executable_fh)
@@ -63,15 +66,33 @@ def assemble(file_name):
 
 
 def process(code):
-    pass
+    # read source
+
+    # create a list of instruction, it saves all instructions from the source
+    instructions: list[MNEMONIC | OPERAND] = []
+
+    # process human code.
+    for line in code:
+        instructions.append(line.strip())
+
+    for instruction in instructions:
+        human_code = instruction.split()
+        mnemonic = human_code[0]
+        executable.append(mnemonics[mnemonic][0])
+        print(mnemonics[mnemonic][0])
+    print(executable)
+
+
 
 
 # ============================================================================
 # Entry point
 # ============================================================================
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 assembler.py filename")
-    else:
-        filename = sys.argv[1]
-        assemble(filename)
+    # if len(sys.argv) < 2:
+    #     print("Usage: python3 assembler.py filename")
+    # else:
+    #     filename = sys.argv[1]
+    #     assemble(filename)
+    filename = "Testing/InOut.hrm"
+    assemble(filename)
