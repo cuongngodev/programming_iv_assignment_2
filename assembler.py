@@ -20,8 +20,8 @@ MNEMONIC = str
 DEFAULT_PATH = "./Testing/"
 
 mnemonics: dict[MNEMONIC, OPCODE] = {
-    "INBOX": (3, 1),
-    "OUTBOX": (5, 1),
+    "INBOX": (1, 1),
+    "OUTBOX": (2, 1),
     "COPYTO": (3, 2),
     "COPYTO_PT": (4, 2),
     "COPYFROM": (5, 2),
@@ -64,25 +64,76 @@ def assemble(file_name):
         print(word, file=executable_fh)
     executable_fh.close()
 
-
 def process(code):
     # read source
+    pc: PROGRAM_COUNTER = 0 # program counter - tracks the position in the machine code
+    memory_address: MEMORY_ADDRESS  = 0  # Start memory allocation from address 0
 
-    # create a list of instruction, it saves all instructions from the source
-    instructions: list[MNEMONIC | OPERAND] = []
+    # -----------------------------------------------------------------
+    # process human code to machine code.
+    # -----------------------------------------------------------------
 
-    # process human code.
+    # 1st: identify labels and their addresses
     for line in code:
-        instructions.append(line.strip())
+        line = line.strip()
 
-    for instruction in instructions:
-        human_code = instruction.split()
-        mnemonic = human_code[0]
-        executable.append(mnemonics[mnemonic][0])
-        print(mnemonics[mnemonic][0])
-    print(executable)
+        # ignore empty lines and comments
+        if not line or line.startswith("#"):
+            continue
+        # lines contain label
+        if ":" in line:
+            # extract the label name
+            label = line.split(":")[0].strip()
+            # store the label and its PC
+            jump_table[label] = pc
+        else:
+            mnemonic: MNEMONIC = line.split()[0]
+            # increment the PC by the size of the instruction
+            pc += mnemonics[mnemonic][1]
 
+    # 2nd: convert hrm to machine code
+    pc = 0
+    for line in code:
+        line = line.strip()
 
+        if not line or line.startswith("#"):
+            continue
+        if ':' in line: # when encounter label
+            continue
+
+        # parts -> (mnemonic and operand)
+        parts = line.split()
+        mnemonic: MNEMONIC = parts[0]
+
+        opcode,size = mnemonics[mnemonic]
+        executable.append(opcode)
+
+        # if opcode requires operand, then process
+        if size == 2:
+            operand = parts[1]
+
+            # If the operand is a label (for jump instructions)
+            if operand in jump_table:
+                # replace it with the corresponding PC value from the jump_table.
+                operand = jump_table[operand]
+
+            # check if operand is a variable name (x, y, z, ...)
+            elif operand.isidentifier():
+                if operand not in symbol_table:
+                    # allocate a new memory address for the variable
+                    symbol_table[operand] = memory_address
+                    memory_address += 1
+                # replace operand with its memory address
+                operand = symbol_table[operand]
+            else:
+                # if operand is a number.
+                operand = int(operand)
+
+            # add operand to the executable list
+            executable.append(int(operand))
+
+        # update the pc by the size
+        pc +=size
 
 
 # ============================================================================
@@ -94,5 +145,5 @@ if __name__ == "__main__":
     # else:
     #     filename = sys.argv[1]
     #     assemble(filename)
-    filename = "Testing/InOut.hrm"
+    filename = "Testing/JumpNMaximization.hrm"
     assemble(filename)
