@@ -18,11 +18,12 @@ class Machine:
         self.pc: PROGRAM_COUNTER = 0
         self.floor_mat: list[Optional[int]] = [None] * 24
         self.executable: list[OPCODE_NUMBER | OPERAND] = executable
-        self.employee: Optional[int] = None
+        self.employee: Optional[int] = None # hold current temporary values
         self.inputs: list[int] = inputs
         self.finished: bool = False
         self.process_size: int = len(executable)
 
+        self.input_stream = iter(self.inputs)
         # ------------------------------------------------------------------------
         # setup instruction table
         # ------------------------------------------------------------------------
@@ -52,57 +53,100 @@ class Machine:
             self.finished = True
             return
         self.run_opcodes[self.executable[self.pc]]()
+        self.pc += 1
 
     def inbox(self):
-        pass
+        try:
+            # Read the next input value
+            self.employee = next(self.input_stream)
+        except StopIteration:
+            print("Error: No more inputs available.")
+            exit()
 
     def outbox(self):
-        pass
+        if self.employee is not None:
+            print(self.employee) # print value
+            self.employee = None  # clears the employee register
+        else:
+            print("Error: Employee register is empty.")
 
     def copyto(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        self.floor_mat[address] = self.employee
+
 
     def copyto_pt(self):
-        pass
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.floor_mat[address] = self.employee
 
     def copyfrom(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        # copy value from memory to employee
+        self.employee = self.floor_mat[address]
+
 
     def copyfrom_pt(self):
-        pass
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.employee = self.floor_mat[address]
 
     def add(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        self.employee += self.floor_mat[address]
 
     def add_pt(self):
-        pass
-
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.employee += self.floor_mat[address]  # Add memory value to employee (pointer)
     def sub(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        self.employee -= self.floor_mat[address]
 
     def sub_pt(self):
-        pass
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.employee -= self.floor_mat[address]
 
     def bumpup(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        self.floor_mat[address] += 1
 
     def bumpup_pt(self):
-        pass
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.floor_mat[address] += 1
 
     def bumpdown(self):
-        pass
+        self.pc += 1
+        address = self.executable[self.pc]
+        self.floor_mat[address] -= 1  # Decrement memory value
+        self.employee = self.floor_mat[address]  # Update employee register
 
     def bumpdown_pt(self):
-        pass
+        self.pc += 1
+        address = self.floor_mat[self.executable[self.pc]]
+        self.floor_mat[address] -= 1  # Decrement memory value (pointer)
+        self.employee = self.floor_mat[address]  # Update employee register
 
     def jump(self):
-        pass
+        self.pc += 1
+        self.pc = self.executable[self.pc]  # Set PC to the jump address
 
     def jumpz(self):
-        pass
+        self.pc += 1
+        if self.employee == 0:
+            self.pc = self.executable[self.pc]  # Jump if employee is zero
 
     def jumpn(self):
-        pass
+        self.pc += 1
+        if self.employee < 0:
+            self.pc = self.executable[self.pc]
 
     def __str__(self):
         result = f"Program Counter:  {self.pc:03d}\n"
