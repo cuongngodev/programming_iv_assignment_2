@@ -71,7 +71,9 @@ class Machine:
             print("Error: Employee register is empty.")
 
     def copyto(self):
+        # move to the operand
         self.pc += 1
+
         address = self.executable[self.pc]
         self.floor_mat[address] = self.employee
 
@@ -115,6 +117,8 @@ class Machine:
     def bumpup(self):
         self.pc += 1
         address = self.executable[self.pc]
+        # bump the current value up
+        self.employee += 1
         self.floor_mat[address] += 1
 
     def bumpup_pt(self):
@@ -137,7 +141,8 @@ class Machine:
     def jump(self):
         self.pc += 1
         self.pc = self.executable[self.pc]  # Set PC to the jump address
-
+        # jump to address and continue
+        self.run_opcodes[self.executable[self.pc]]()
     def jumpz(self):
         self.pc += 1
         if self.employee == 0:
@@ -172,7 +177,6 @@ def emulate(exe_file, input_file):
     inputs: list[int] = list(map(int, [line for line in inputs_fh.readlines() if line.strip() != ""]))
     code_fh.close()
     inputs_fh.close()
-
     machine = Machine(code, inputs)
     while not machine.finished:
         machine.process_next_instruction()
