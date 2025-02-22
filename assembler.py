@@ -145,5 +145,5 @@ if __name__ == "__main__":
     # else:
     #     filename = sys.argv[1]
     #     assemble(filename)
-    filename = "Testing/JumpNMaximization.hrm"
+    filename = "Testing/JumpZMultiply.hrm"
     assemble(filename)
