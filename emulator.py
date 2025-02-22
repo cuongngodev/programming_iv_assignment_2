@@ -22,8 +22,7 @@ class Machine:
         self.inputs: list[int] = inputs
         self.finished: bool = False
         self.process_size: int = len(executable)
-
-        self.input_stream = iter(self.inputs)
+        self.input_index: int = 0
         # ------------------------------------------------------------------------
         # setup instruction table
         # ------------------------------------------------------------------------
@@ -56,19 +55,23 @@ class Machine:
         self.pc += 1
 
     def inbox(self):
-        try:
-            # Read the next input value
-            self.employee = next(self.input_stream)
-        except StopIteration:
-            print("Error: No more inputs available.")
-            exit()
+        # try:
+        # keep reading input when the input stream is not empty
+        if self.input_index < len(self.inputs):
+            # Read the next input value using the manual index
+            self.employee = self.inputs[self.input_index]
+            self.input_index += 1  # Move to the next input
+        else:
+            # terminate the program
+            self.finished = True
 
     def outbox(self):
+        # try:
         if self.employee is not None:
             print(self.employee) # print value
             self.employee = None  # clears the employee register
         else:
-            print("Error: Employee register is empty.")
+            self.finished = True
 
     def copyto(self):
         # move to the operand
@@ -76,7 +79,6 @@ class Machine:
 
         address = self.executable[self.pc]
         self.floor_mat[address] = self.employee
-
 
     def copyto_pt(self):
         self.pc += 1
@@ -88,7 +90,6 @@ class Machine:
         address = self.executable[self.pc]
         # copy value from memory to employee
         self.employee = self.floor_mat[address]
-
 
     def copyfrom_pt(self):
         self.pc += 1
@@ -104,6 +105,7 @@ class Machine:
         self.pc += 1
         address = self.floor_mat[self.executable[self.pc]]
         self.employee += self.floor_mat[address]  # Add memory value to employee (pointer)
+
     def sub(self):
         self.pc += 1
         address = self.executable[self.pc]
@@ -143,6 +145,7 @@ class Machine:
         self.pc = self.executable[self.pc]  # Set PC to the jump address
         # jump to address and continue
         self.run_opcodes[self.executable[self.pc]]()
+
     def jumpz(self):
         self.pc += 1
         if self.employee == 0:
