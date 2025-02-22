@@ -131,8 +131,9 @@ class Machine:
     def bumpdown(self):
         self.pc += 1
         address = self.executable[self.pc]
-        self.floor_mat[address] -= 1  # Decrement memory value
-        self.employee = self.floor_mat[address]  # Update employee register
+        # self.employee -= 1
+        self.floor_mat[address] -= 1
+        self.employee = self.floor_mat[address]   # Update employee register
 
     def bumpdown_pt(self):
         self.pc += 1
@@ -147,9 +148,14 @@ class Machine:
         self.run_opcodes[self.executable[self.pc]]()
 
     def jumpz(self):
-        self.pc += 1
         if self.employee == 0:
+            self.pc += 1
             self.pc = self.executable[self.pc]  # Jump if employee is zero
+            # start jumping
+            self.run_opcodes[self.executable[self.pc]]()
+        else:
+            self.pc +=1
+
 
     def jumpn(self):
         self.pc += 1
