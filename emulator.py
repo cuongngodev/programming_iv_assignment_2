@@ -158,9 +158,14 @@ class Machine:
 
 
     def jumpn(self):
-        self.pc += 1
         if self.employee < 0:
+            self.pc += 1
             self.pc = self.executable[self.pc]
+            # start jumping
+            self.run_opcodes[self.executable[self.pc]]()
+        else:
+            self.pc +=1
+
 
     def __str__(self):
         result = f"Program Counter:  {self.pc:03d}\n"
