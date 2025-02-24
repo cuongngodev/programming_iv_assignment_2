@@ -48,17 +48,18 @@ class Machine:
         ]
 
     def process_next_instruction(self):
+        # run code until reaching the end of code
         if self.pc >= self.process_size:
             self.finished = True
             return
+
         self.run_opcodes[self.executable[self.pc]]()
         self.pc += 1
 
     def inbox(self):
-        # try:
         # keep reading input when the input stream is not empty
         if self.input_index < len(self.inputs):
-            # Read the next input value using the manual index
+            # Read the next input value
             self.employee = self.inputs[self.input_index]
             self.input_index += 1  # Move to the next input
         else:
@@ -66,18 +67,24 @@ class Machine:
             self.finished = True
 
     def outbox(self):
-        # try:
         if self.employee is not None:
             print(self.employee) # print value
             self.employee = None  # clears the employee register
         else:
+            # error raised when trying to output with nothing in my hand
             self.finished = True
+            raise TypeError("Employee is not holding anything!")
 
     def copyto(self):
         # move to the operand
         self.pc += 1
 
         address = self.executable[self.pc]
+        # Question: do we need to check if the address is out of bound?
+        if self.employee is None:
+            raise TypeError("Employee is not holding anything!")
+        if address >= len(self.floor_mat):
+            raise IndexError("Address out of range!")
         self.floor_mat[address] = self.employee
 
     def copyto_pt(self):
@@ -85,10 +92,17 @@ class Machine:
         address = self.floor_mat[self.executable[self.pc]]
         self.floor_mat[address] = self.employee
 
+    # checked
     def copyfrom(self):
         self.pc += 1
         address = self.executable[self.pc]
+
+        if address >= len(self.floor_mat):
+            raise IndexError("Address out of range!")
+
         # copy value from memory to employee
+        if self.floor_mat[address] is None: # value at the address is none
+            raise ValueError("Address is not holding anything to copy from!")
         self.employee = self.floor_mat[address]
 
     def copyfrom_pt(self):
@@ -97,18 +111,42 @@ class Machine:
         self.employee = self.floor_mat[address]
 
     def add(self):
+        # check if employee holds something
+        if self.employee is None:
+            raise TypeError("Employee is not holding anything!")
         self.pc += 1
+
+        # if there is nothing in the address to add to, raise exception
         address = self.executable[self.pc]
+        if address >= len(self.floor_mat):
+            raise IndexError("Address out of range!")
+
+        # if nothing in the address
+        if self.floor_mat[address] is None:
+            raise ValueError("Address is not holding anything to add!")
         self.employee += self.floor_mat[address]
 
     def add_pt(self):
         self.pc += 1
         address = self.floor_mat[self.executable[self.pc]]
+
         self.employee += self.floor_mat[address]  # Add memory value to employee (pointer)
 
     def sub(self):
+        # check if employee holds something
+        if self.employee is None:
+            raise TypeError("Employee is not holding anything!")
         self.pc += 1
+
+        # if there is nothing in the address to subtract, raise exception
         address = self.executable[self.pc]
+        if address >= len(self.floor_mat):
+            raise IndexError("Address out of range!")
+
+        # if nothing in the address
+        if self.floor_mat[address] is None:
+            raise ValueError("Address is not holding anything to subtract!")
+
         self.employee -= self.floor_mat[address]
 
     def sub_pt(self):
@@ -119,9 +157,13 @@ class Machine:
     def bumpup(self):
         self.pc += 1
         address = self.executable[self.pc]
+
+        if self.floor_mat[address] is None:
+            raise ValueError("Address is not holding anything to bump up!")
+
         # bump the current value up
-        self.employee += 1
         self.floor_mat[address] += 1
+        self.employee = self.floor_mat[address]
 
     def bumpup_pt(self):
         self.pc += 1
@@ -131,6 +173,9 @@ class Machine:
     def bumpdown(self):
         self.pc += 1
         address = self.executable[self.pc]
+
+        if self.floor_mat[address] is None:
+            raise ValueError("Address is not holding anything to bump down!")
         # self.employee -= 1
         self.floor_mat[address] -= 1
         self.employee = self.floor_mat[address]   # Update employee register
@@ -142,8 +187,15 @@ class Machine:
         self.employee = self.floor_mat[address]  # Update employee register
 
     def jump(self):
+        # check if employee holds something
+
         self.pc += 1
         self.pc = self.executable[self.pc]  # Set PC to the jump address
+
+        # if the address where jump to is out of floor mat
+        if self.pc >= len(self.floor_mat):
+            raise IndexError("Address out of range!")
+
         # jump to address and continue
         self.run_opcodes[self.executable[self.pc]]()
 
@@ -151,6 +203,11 @@ class Machine:
         if self.employee == 0:
             self.pc += 1
             self.pc = self.executable[self.pc]  # Jump if employee is zero
+
+            # if the address where jump to is out of floor mat
+            if self.pc >= len(self.floor_mat):
+                raise IndexError("Address out of range!")
+
             # start jumping
             self.run_opcodes[self.executable[self.pc]]()
         else:
@@ -161,6 +218,10 @@ class Machine:
         if self.employee < 0:
             self.pc += 1
             self.pc = self.executable[self.pc]
+
+            # if the address where jump to is out of floor mat
+            if self.pc >= len(self.floor_mat):
+                raise IndexError("Address out of range!")
             # start jumping
             self.run_opcodes[self.executable[self.pc]]()
         else:
