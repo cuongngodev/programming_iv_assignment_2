@@ -63,7 +63,7 @@ class Machine:
             self.employee = self.inputs[self.input_index]
             self.input_index += 1  # Move to the next input
         else:
-            # terminate the program
+            # terminate the program if there is not thing left in the inputs to read
             self.finished = True
 
     def outbox(self):
@@ -72,7 +72,7 @@ class Machine:
             self.employee = None  # clears the employee register
         else:
             # error raised when trying to output with nothing in my hand
-            self.finished = True
+            # self.finished = True
             raise TypeError("Employee is not holding anything!")
 
     def copyto(self):
@@ -84,7 +84,7 @@ class Machine:
         if self.employee is None:
             raise TypeError("Employee is not holding anything!")
         if address >= len(self.floor_mat):
-            raise IndexError("Address out of range!")
+            raise IndexError(f"Address {address} out of range!")
         self.floor_mat[address] = self.employee
 
     def copyto_pt(self):
@@ -98,11 +98,11 @@ class Machine:
         address = self.executable[self.pc]
 
         if address >= len(self.floor_mat):
-            raise IndexError("Address out of range!")
+            raise IndexError(f"Address {address} out of range!")
 
         # copy value from memory to employee
         if self.floor_mat[address] is None: # value at the address is none
-            raise ValueError("Address is not holding anything to copy from!")
+            raise ValueError(f"Address {address} is not holding anything to copy from!")
         self.employee = self.floor_mat[address]
 
     def copyfrom_pt(self):
@@ -119,11 +119,11 @@ class Machine:
         # if there is nothing in the address to add to, raise exception
         address = self.executable[self.pc]
         if address >= len(self.floor_mat):
-            raise IndexError("Address out of range!")
+            raise IndexError(f"Address {address} out of range!")
 
         # if nothing in the address
         if self.floor_mat[address] is None:
-            raise ValueError("Address is not holding anything to add!")
+            raise ValueError(f"Address {address} is not holding anything to add!")
         self.employee += self.floor_mat[address]
 
     def add_pt(self):
@@ -159,7 +159,7 @@ class Machine:
         address = self.executable[self.pc]
 
         if self.floor_mat[address] is None:
-            raise ValueError("Address is not holding anything to bump up!")
+            raise ValueError(f"Address {address} is not holding anything to bump up!")
 
         # bump the current value up
         self.floor_mat[address] += 1
@@ -176,7 +176,8 @@ class Machine:
 
         if self.floor_mat[address] is None:
             raise ValueError("Address is not holding anything to bump down!")
-        # self.employee -= 1
+
+        # bump the value at the specified address down by 1
         self.floor_mat[address] -= 1
         self.employee = self.floor_mat[address]   # Update employee register
 
@@ -213,7 +214,6 @@ class Machine:
         else:
             self.pc +=1
 
-
     def jumpn(self):
         if self.employee < 0:
             self.pc += 1
@@ -226,7 +226,6 @@ class Machine:
             self.run_opcodes[self.executable[self.pc]]()
         else:
             self.pc +=1
-
 
     def __str__(self):
         result = f"Program Counter:  {self.pc:03d}\n"

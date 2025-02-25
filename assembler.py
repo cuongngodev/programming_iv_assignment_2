@@ -51,35 +51,41 @@ jump_table: dict[LABEL, PROGRAM_COUNTER] = {}
 # assembly
 # ============================================================================
 def assemble(file_name):
+    """
+    Assembles the human-readable assembly code from the specified file into machine code.
+    :param file_name: The name of file to assemble.
+    """
     executable.clear()
     symbol_table.clear()
     jump_table.clear()
 
     code = open(file_name, "r").readlines()
-    process(code)
+    listing: [str] = process(code)
     file_name = os.path.basename(file_name)
     executable_file = DEFAULT_PATH + file_name[:file_name.find(".")] + ".out"
+    listing_file = DEFAULT_PATH + file_name[:file_name.find(".")] + ".listing"
+
+    with open(listing_file, "w") as listing_file:
+        listing_file.writelines("Address  Opcode  Operand   Code\n")
+        listing_file.writelines(listing)
     executable_fh = open(executable_file, "w")
     for word in executable:
         print(word, file=executable_fh)
     executable_fh.close()
 
-def process(code):
-    # read source
-    pc: PROGRAM_COUNTER = 0 # program counter - tracks the position in the machine code
-    memory_address: MEMORY_ADDRESS  = 0  # Start memory allocation from address 0
-
-    # -----------------------------------------------------------------
-    # process human code to machine code.
-    # -----------------------------------------------------------------
-
-    # 1st: identify labels and their addresses
+def identify_labels(code):
+    """
+    Identifies labels in the assembly code and stores their program counter values in the jump_table.
+    :param code: The assembly code as a list of strings.
+    """
+    pc: PROGRAM_COUNTER = 0
     for line in code:
         line = line.strip()
 
         # ignore empty lines and comments
         if not line or line.startswith("#"):
             continue
+
         # lines contain label
         if ":" in line:
             # extract the label name
@@ -90,22 +96,31 @@ def process(code):
             mnemonic: MNEMONIC = line.split()[0]
             # increment the PC by the size of the instruction
             pc += mnemonics[mnemonic][1]
+def convert_hrm_to_code(code) -> [str]:
+    """
+    Converts the HRM assembly code to machine code.
+    :param code: The assembly code as a list of strings.
+    """
+    pc: PROGRAM_COUNTER = 0
+    memory_address: MEMORY_ADDRESS = 0
+    listing: [str] = []
+    operand_str: str = ""
 
-    # 2nd: convert hrm to machine code
-    pc = 0
     for line in code:
         line = line.strip()
 
         if not line or line.startswith("#"):
+            listing.append(' ' * 27 + line + "\n")
             continue
-        if ':' in line: # when encounter label
+        if ':' in line:  # when encounter label
+            listing.append(' ' * 27 + line + "\n")
             continue
 
         # parts -> (mnemonic and operand)
         parts = line.split()
         mnemonic: MNEMONIC = parts[0]
 
-        opcode,size = mnemonics[mnemonic]
+        opcode, size = mnemonics[mnemonic]
         executable.append(opcode)
 
         # if opcode requires operand, then process
@@ -131,10 +146,26 @@ def process(code):
 
             # add operand to the executable list
             executable.append(int(operand))
-
+            operand_str = f"{operand:06d}"
+        else:
+            operand_str = " " * 6
+        listing_line: str = f"{pc}        {opcode:06d}  {operand_str}    {line} \n"
+        listing.append(listing_line)
         # update the pc by the size
-        pc +=size
+        pc += size
+    return listing
 
+def process(code) -> [str]:
+    """
+    Processes the assembly code to generate machine codes.
+    :param code: The assembly code as a list of strings.
+    """
+
+    # 1st: identify labels and their addresses
+    identify_labels(code)
+
+    # 2nd: convert hrm to machine code
+    return convert_hrm_to_code(code)
 
 # ============================================================================
 # Entry point
